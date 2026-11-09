@@ -1,0 +1,8 @@
+# ims_v3 runtime dependencies (versions pinned to the working dev env,
+# Python 3.12, verified 2026-11-07).
+streamlit==1.59.2
+pandas==3.0.3
+plotly==7.1.0
+altair==6.2.2
+pillow==12.3.0
+requests==2.34.2

@@ -1,0 +1,8 @@
+# Local/dev runtime state — keep out of git
+*.db
+*.db.bak-*
+*.sqlite
+*.log
+__pycache__/
+*.pyc
+.venv/
