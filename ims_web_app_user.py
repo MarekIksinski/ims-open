@@ -19,7 +19,7 @@ import base64
 # (Admin app -> AI Settings page). Defaults are in database_utils.
 
 # --- STREAMLIT CONFIG ---
-st.set_page_config(page_title="SMT (Staff)", layout="wide") 
+st.set_page_config(page_title="IMS (Staff)", layout="wide") 
 
 # --- DATABASE CONNECTION ---
 conn = database_utils.connect_to_db() 
@@ -79,7 +79,7 @@ if not st.session_state.logged_in:
 #  🏁 MAIN APP STARTS HERE (Only runs if logged_in == True)
 # =========================================================
 
-st.title(f"📦 Stuff Management Thingi (User: {st.session_state.current_user['username']})") 
+st.title(f"📦 Inventory Management (User: {st.session_state.current_user['username']})") 
 
 if st.session_state.get('pin_legacy_notice'):
     st.warning("⚠️ Your PIN was stored in an insecure legacy format. It has "
@@ -96,18 +96,18 @@ with st.sidebar:
 
 # Initialize the choice in session state if it doesn't exist
 if 'staff_choice' not in st.session_state:
-    st.session_state.staff_choice = "📊 Stuff We Have"
+    st.session_state.staff_choice = "📊 Current Stock"
 
 st.sidebar.title("Staff Menu")
 
 # Group 1: Inventory
 with st.sidebar.expander("📦 Inventory & Stock", expanded=True):
-    if st.button("📊 Stuff We Have", use_container_width=True):
-        st.session_state.staff_choice = "📊 Stuff We Have"
+    if st.button("📊 Current Stock", use_container_width=True):
+        st.session_state.staff_choice = "📊 Current Stock"
         st.rerun()
         
-    if st.button("🔄 Update Available Stuff", use_container_width=True):
-        st.session_state.staff_choice = "🔄 Update Available Stuff"
+    if st.button("🔄 Update Stock Counts", use_container_width=True):
+        st.session_state.staff_choice = "🔄 Update Stock Counts"
         st.rerun()
         
     if st.button("🔍 Stock Check", use_container_width=True):
@@ -120,12 +120,12 @@ with st.sidebar.expander("📦 Inventory & Stock", expanded=True):
 
 # Group 2: Deliveries & Orders
 with st.sidebar.expander("🚚 Orders & Deliveries", expanded=True):
-    if st.button("📝 Stuff We Want", use_container_width=True):
-        st.session_state.staff_choice = "📝 Stuff We Want"
+    if st.button("📝 Generate Orders", use_container_width=True):
+        st.session_state.staff_choice = "📝 Generate Orders"
         st.rerun()
         
-    if st.button("🚚 Stuff We Got", use_container_width=True):
-        st.session_state.staff_choice = "🚚 Stuff We Got"
+    if st.button("🚚 Receive Deliveries", use_container_width=True):
+        st.session_state.staff_choice = "🚚 Receive Deliveries"
         st.rerun()
         
     if st.button("📦 View Order History", use_container_width=True):
@@ -147,8 +147,8 @@ choice = st.session_state.staff_choice
 
 def invalidate_order_form_state():
     """
-    Drop stale 'Stuff We Want' widget state whenever stock changes
-    (Stock Check, Update Available Stuff, Resolve Skipped, Log Stock
+    Drop stale 'Generate Orders' widget state whenever stock changes
+    (Stock Check, Update Stock Counts, Resolve Skipped, Log Stock
     Loss): st.number_input keeps session_state over value= defaults,
     so old order quantities would otherwise survive a stock change.
     """
@@ -464,7 +464,7 @@ def get_item_id_name_map(_conn):
 
 # --- MAIN LOGIC ---
 
-if choice == "📊 Stuff We Have": 
+if choice == "📊 Current Stock": 
     st.header("📊 Current Inventory")
     
     # Use the new optimized query that includes allergens
@@ -519,7 +519,7 @@ if choice == "📊 Stuff We Have":
             if c and d:
                 st.dataframe(pd.DataFrame(d, columns=c), use_container_width=True, hide_index=True)
 
-elif choice == "🔄 Update Available Stuff": 
+elif choice == "🔄 Update Stock Counts": 
     st.header("🔄 Update Available Quantity")
 
     if 'ua_cat' not in st.session_state: st.session_state.ua_cat = None
@@ -609,7 +609,7 @@ elif choice == "📉 Log Stock Loss":
                 else:
                     st.error(msg)
 
-elif choice == "📝 Stuff We Want": 
+elif choice == "📝 Generate Orders": 
     st.header("📝 Generate Orders")
 
     if 'generated_orders_map' not in st.session_state:
@@ -692,8 +692,8 @@ elif choice == "📝 Stuff We Want":
                             else:
                                 st.warning("No items selected (all quantities were 0).")
 
-elif choice == "🚚 Stuff We Got":
-    st.header("🚚 Receive Goods (+ Update Prices)")
+elif choice == "🚚 Receive Deliveries":
+    st.header("🚚 Receive Deliveries & Update Prices")
     
     # Session state for AI results (stores dict: {id: {'qty': 0, 'price': 0.0, 'vat': 0.0, 'invoice_desc': ''}})
     if 'delivery_ai_results' not in st.session_state: st.session_state.delivery_ai_results = {}

@@ -603,7 +603,7 @@ def verify_matches(ocr_lines, proposed_matches, supplier_catalog):
 
 # --- STREAMLIT APP START ---
 
-st.set_page_config(page_title="system to manage stuff mangement system", layout="wide")
+st.set_page_config(page_title="IMS (Admin)", layout="wide")
 
 # Establish Database Connection using database_utils
 conn = database_utils.connect_to_db() 
@@ -2195,7 +2195,7 @@ elif choice == "Backup & Restore":
                 if sql_script:
                     # Create timestamped filename
                     ts = datetime.now().strftime("%Y-%m-%d_%H%M")
-                    filename = f"smt_backup_{ts}.sql"
+                    filename = f"ims_backup_{ts}.sql"
                     
                     # Convert to bytes for download
                     b_data = sql_script.encode('utf-8')

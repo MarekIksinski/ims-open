@@ -1,4 +1,4 @@
-# ims — Stuff Management Thing
+# ims — Inventory Management
 
 A small self-hosted inventory / stock management system for food
 businesses, built with Streamlit + SQLite. Designed to run on a LAN

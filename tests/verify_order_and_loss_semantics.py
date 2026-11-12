@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Regression harness for the 'Stuff We Want' reordering fixes.
+Regression harness for the 'Generate Orders' reordering fixes.
 
 Asserts:
 1. get_items_to_order filters STRICTLY by physical deficit — an item

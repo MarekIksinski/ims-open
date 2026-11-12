@@ -25,12 +25,12 @@ A third standalone app exists: **FSA Allergen Board** —
 
 Sidebar groups: Inventory & Stock / Orders & Deliveries / Waste & Loss.
 
-### 1.1 📊 Stuff We Have (inventory view)
+### 1.1 📊 Current Stock (inventory view)
 Read-only stock table: name, qty, ⚠️ Contains / ❓ May Contain allergens,
 category, expiry date. A "Quick view other tables" selectbox shows raw
 `orders` / `order_items` rows for reference.
 
-### 1.2 🔄 Update Available Stuff (quick qty edit)
+### 1.2 🔄 Update Stock Counts (quick qty edit)
 Three-step drill-down: pick a **category button** → pick an **item** →
 enter the new quantity → **Update**. Writes `available_quantity` directly.
 Category/item selection persists in session state (`ua_cat`, `ua_item`).
@@ -49,7 +49,7 @@ Lists unresolved skips from a Stock Check. Pick one, enter the correct
 quantity → **Resolve** updates stock and marks the skip resolved. Items
 deleted since the check show an error and cannot be resolved by qty.
 
-### 1.5 📝 Stuff We Want (generate orders)
+### 1.5 📝 Generate Orders
 `get_items_to_order` filters STRICTLY by physical deficit: any item with
 `desired_quantity > available_quantity` appears, NEVER hidden because an
 open order (`status IN ('Generated', 'Partially Delivered')`) exists —
@@ -72,11 +72,11 @@ Flow:
 **Stale-widget rule:** `invalidate_order_form_state()` (clears
 `generated_orders_map` + every `ord_*` widget key) is called whenever
 stock changes elsewhere — Stock Check **Confirm & Next** / **Finish**,
-Update Available Stuff **Update**, Resolve Skipped **Resolve**, Log
+Update Stock Counts **Update**, Resolve Skipped **Resolve**, Log
 Stock Loss success — so `st.number_input` never keeps a pre-stock-check
 quantity via session_state.
 
-### 1.6 🚚 Stuff We Got (receive delivery — AI 3-pass scan + confirm)
+### 1.6 🚚 Receive Deliveries (AI 3-pass scan + confirm)
 The core receiving workflow. Pick an open order, then:
 
 **AI Auto-Fill expander** — upload one or more invoice photos, hit
@@ -152,7 +152,7 @@ than available) and logs the event with
 unit price from supplier invoices, NOT per piece (multiplying by
 `pack_size` inflated losses 20x–60x; fixed 2026-10). `pack_size` is no
 longer read for this calculation. On success,
-`invalidate_order_form_state()` clears stale 'Stuff We Want' widget
+`invalidate_order_form_state()` clears stale 'Generate Orders' widget
 state. Entries carry the logged-in username.
 
 ---
@@ -260,7 +260,7 @@ allergen tables. Master list page shows all known allergens.
 `Last Reviewed:` under the current allergen captions and
 **Save Both Lists** stamps it via `mark_item_allergens_reviewed`
 (even a zero-allergen confirmation counts as a review). It surfaces
-in 🔍 Search Items ('Never' default), the staff Stuff We Have table
+in 🔍 Search Items ('Never' default), the staff Current Stock table
 (🕒 Allergens Reviewed column, 'Never' default) and the CSV export.
 **Review queue**: the extractor opens with 3 metrics (✅ Reviewed /
 ⚠️ Never Reviewed / 🕰️ Stale > 90 days, buckets via
@@ -293,7 +293,7 @@ double-count multi-stage deliveries — fall back to current
 `order_items.item_name` snapshot for deleted items.
 
 ### 2.14 💾 Backup & Restore
-**Export**: generates a full SQL dump (`smt_backup_<ts>.sql`) for
+**Export**: generates a full SQL dump (`ims_backup_<ts>.sql`) for
 download. **Import (Restore)**: DANGER ZONE — upload a `.sql` dump and
 **EXECUTE RESTORE** wipes current data and replays the backup. The
 confirm PIN must belong to an **admin** account (audit 2026-10-31 #3,

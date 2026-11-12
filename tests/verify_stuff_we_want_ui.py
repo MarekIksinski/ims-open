@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 AppTest gate for the reordering workflow fixes:
-1. 'Stuff We Want' shows an item that is fully covered by an open order
+1. 'Generate Orders' shows an item that is fully covered by an open order
    (it must NOT be hidden), with the 'already on an open order' warning,
    and the order-qty widget defaulted to the physical deficit.
 2. A Stock Check 'Confirm & Next' clears stale 'ord_*' widget keys and
@@ -36,11 +36,11 @@ def run(at):
         pass
     assert not at.exception, at.exception
 
-# --- 1. Stuff We Want rendering --------------------------------------
+# --- 1. Generate Orders rendering --------------------------------------
 at = AppTest.from_file(os.path.join(ROOT, "ims_web_app_user.py"), default_timeout=30)
 at.session_state["logged_in"] = True
 at.session_state["current_user"] = {"username": "tester", "is_admin": False}
-at.session_state["staff_choice"] = "📝 Stuff We Want"
+at.session_state["staff_choice"] = "📝 Generate Orders"
 run(at)
 
 assert any("Croissants" in (m.value or "") for m in at.markdown), "Croissants hidden despite fully-covered open order"
