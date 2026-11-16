@@ -1,6 +1,6 @@
-# Regression harness: get_items_to_order must net out quantities already
-# pending on open orders ('Generated'/'Partially Delivered') so staff are
-# never prompted to re-order stock that is already on its way.
+# Regression harness: get_items_to_order lists every item with a raw deficit
+# (desired > available). pending_order_quantity is INFORMATIONAL only (open
+# 'Generated'/'Partially Delivered' orders) and NEVER hides an item.
 # Seeds a temp SQLite DB built with the project's own ensure_all_tables_exist.
 import sqlite3, sys, os, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,9 +14,10 @@ database_utils.ensure_all_tables_exist(conn)
 conn.commit()
 
 c = conn.cursor()
-# item 1: flour, deficit 10, pending 4 on a Generated order -> net 6
+# item 1: flour, deficit 10, pending 4 on a Generated order -> pending shown, deficit raw
 c.execute("INSERT INTO items (id,name,available_quantity,desired_quantity,pack_size,main_supplier) VALUES (1,'flour',5,15,6,'SupA')")
-# item 2: milk, deficit 10, fully pending (10 on open orders) -> must NOT appear
+# item 2: milk, deficit 10, fully pending (10 on open orders) -> still shown;
+# pending_qty is informational only (never hides an item behind an open order)
 c.execute("INSERT INTO items (id,name,available_quantity,desired_quantity,pack_size,main_supplier) VALUES (2,'milk',0,10,1,'SupA')")
 # item 3: fat, deficit 5, over-delivered on a Partially Delivered order (ordered 2, received 5) -> pending clamps to 0 -> net 5
 c.execute("INSERT INTO items (id,name,available_quantity,desired_quantity,pack_size,main_supplier) VALUES (3,'fat',3,8,1,'SupB')")
@@ -36,13 +37,17 @@ rows = database_utils.get_items_to_order(conn)
 by_name = {r['name']: r for r in rows}
 print(rows)
 
-assert set(by_name) == {'flour', 'fat', 'beans'}, by_name  # milk fully pending -> gone
+assert set(by_name) == {'flour', 'milk', 'fat', 'beans'}, by_name  # pending never hides
 
 f = by_name['flour']
 assert f['pending_order_quantity'] == 4, f
-assert f['deficit_quantity'] == 6, f          # 15 - 5 - 4
-assert f['order_quantity'] == 6, f            # raw net deficit (pack rounding retired)
+assert f['deficit_quantity'] == 10, f          # raw desired-available (pending informational)
+assert f['order_quantity'] == 10, f            # raw net deficit (pack rounding retired)
 assert 'pack_size' not in f, f
+
+m = by_name['milk']
+assert m['pending_order_quantity'] == 10, m    # informational, item still shown
+assert m['order_quantity'] == 10, m
 
 assert by_name['fat']['pending_order_quantity'] == 0, by_name['fat']   # MAX(0, 2-5) clamp
 assert by_name['fat']['order_quantity'] == 5, by_name['fat']
