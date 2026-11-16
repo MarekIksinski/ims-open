@@ -2,8 +2,9 @@
 
 A small self-hosted inventory / stock management system for food
 businesses, built with Streamlit + SQLite. Designed to run on a LAN
-(café, small kitchen, deli counter). AI features are optional and run
-against a local [Ollama](https://ollama.com) server — no cloud calls.
+(café, small kitchen, deli counter) — not for internet exposure.
+AI features are optional and run against a local
+[Ollama](https://ollama.com) server — no cloud calls.
 
 Three apps share one SQLite database:
 
@@ -27,8 +28,10 @@ git clone <this repo> && cd <repo>
 ```
 
 First run creates `inventory.db` next to the sources and a default
-admin account: username **Admin**, PIN **1234**. Log in and change the
-PIN immediately (admin → Manage Users).
+admin account: username **Admin**, PIN **1234**. These credentials are
+publicly documented in this README — log in and change the PIN
+immediately (admin → Manage Users), and keep the apps on a trusted
+network only (see Security model below).
 
 Python 3.12+ (verified through 3.14). Dependencies are pinned in
 `requirements.txt`.
@@ -70,6 +73,10 @@ than applied silently.
 This is built for a trusted LAN (optionally reached over Tailscale or
 similar), not for internet exposure:
 
+- The default `Admin` / PIN `1234` account is created on first run and
+  is documented here — anyone who can reach the app on your network
+  can become admin until you change that PIN. Change it before first
+  real use.
 - Login is a 4-digit PIN, stored as salted scrypt hashes. Treat the
   PIN as a convenience gate, not a strong secret.
 - The allergen board is unauthenticated by design (counter display) —
