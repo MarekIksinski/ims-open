@@ -273,6 +273,23 @@ def migrate_add_admin_column(conn):
         cursor.execute("UPDATE staff_users SET is_admin = 1 WHERE username = 'Admin'")
         conn.commit()
 
+    # Lockout safety net (runs on every start): if NO user has admin access
+    # but a user literally named 'Admin' exists (the default account created
+    # by ensure_admin_user_exists), promote it. Only fires when nobody could
+    # open the admin app, so deliberate demotions of other accounts are safe.
+    try:
+        no_admin = cursor.execute(
+            "SELECT COUNT(*) FROM staff_users WHERE is_admin = 1").fetchone()[0] == 0
+        if no_admin:
+            promoted = cursor.execute(
+                "UPDATE staff_users SET is_admin = 1 WHERE username = 'Admin'")
+            if promoted.rowcount:
+                conn.commit()
+                logging.info("No admin user found — promoted default 'Admin' account "
+                             "to admin so the admin app is reachable.")
+    except sqlite3.OperationalError:
+        pass  # column genuinely missing (shouldn't happen post-ALTER)
+
 @log_database_operation
 def migrate_add_pack_size_column(conn):
     """
@@ -1599,9 +1616,13 @@ def ensure_admin_user_exists(conn):
     
     if count == 0:
         default_pin_hash = hash_pin("1234")
+        # is_admin=1 explicitly: on a FRESH DB the is_admin column already
+        # exists (create_staff_users_table's migration no-op doesn't fire),
+        # so without this the default Admin lands with DEFAULT 0 and is
+        # locked out of the admin app with no way to fix it from the UI.
         cursor.execute('''
-            INSERT INTO staff_users (username, hashed_password, is_active)
-            VALUES (?, ?, 1)
+            INSERT INTO staff_users (username, hashed_password, is_active, is_admin)
+            VALUES (?, ?, 1, 1)
         ''', ("Admin", default_pin_hash))
         conn.commit()
         logging.info("Table 'staff_users' was empty. Created default user 'Admin' with PIN '1234'.")
