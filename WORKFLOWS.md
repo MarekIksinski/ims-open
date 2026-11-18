@@ -290,7 +290,11 @@ queries pick at most ONE `price_history` row per (item, order) via a
 correlated subquery (latest `history_id`) — a direct JOIN would
 double-count multi-stage deliveries — fall back to current
 `item_prices`, treat NULL `received_quantity` as 0, and use the
-`order_items.item_name` snapshot for deleted items.
+`order_items.item_name` snapshot for deleted items. Both date columns are
+parsed with `pd.to_datetime(..., format="ISO8601")`: SQLite DATETIME values
+mix second-precision (`CURRENT_TIMESTAMP`) and microsecond (Python-inserted)
+strings in one column, and pandas ≥3 raises "unconverted data remains"
+without an explicit format. Regression: `tests/verify_spend_timestamps.py`.
 
 ### 2.14 💾 Backup & Restore
 **Export**: generates a full SQL dump (`ims_backup_<ts>.sql`) for

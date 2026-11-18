@@ -2004,7 +2004,10 @@ elif choice == "📊 Spend Analysis":
             st.info("No delivered orders found yet.")
         else:
             df = pd.DataFrame(raw_data)
-            df['date'] = pd.to_datetime(df['date'])
+            # ISO8601 explicitly: SQLite DATETIME defaults store microseconds
+            # (e.g. '2026-11-16 22:58:38.930330'); without format= pandas 3
+            # raises "unconverted data remains" on mixed-precision values.
+            df['date'] = pd.to_datetime(df['date'], format="ISO8601")
             
             col_ctrl1, col_ctrl2 = st.columns([1, 3])
             with col_ctrl1:
@@ -2056,7 +2059,7 @@ elif choice == "📊 Spend Analysis":
             st.info("No item data available.")
         else:
             df_item = pd.DataFrame(item_data)
-            df_item['date'] = pd.to_datetime(df_item['date'])
+            df_item['date'] = pd.to_datetime(df_item['date'], format="ISO8601")
             df_item['Month'] = df_item['date'].dt.strftime('%Y-%m')
 
             # Calculate Defaults (Top 5 by Volume)
